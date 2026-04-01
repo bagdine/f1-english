@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="F1 English"/>
+<title>F1 English Mastery</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#0a0a0f;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+#app{max-width:430px;margin:0 auto;padding:20px 16px 60px;}
+.hdr{font-size:20px;font-weight:800;margin-bottom:16px;letter-spacing:.3px;}
+.card{background:#12121a;border:1px solid #1e1e2e;border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+.btn{display:block;width:100%;background:#e8002d;color:#fff;border:none;border-radius:12px;padding:13px 16px;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit;margin-bottom:0;}
+.btn-ghost{background:transparent;border:1px solid #1e1e2e;color:#666;}
+.btn-dark{background:#1a1a2e;border:1px solid #1e1e2e;color:#f0f0f0;font-size:13px;}
+.btn-dim{background:#7a0018;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.cat-btn{background:#12121a;border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;border:none;font-family:inherit;}
+.muted{color:#666;}
+.green{color:#22c55e;}
+.orange{color:#f97316;}
+.blue{color:#3b82f6;}
+.purple{color:#a855f7;}
+.teal{color:#14b8a6;}
+.yellow{color:#eab308;}
+.gold{color:#ffd700;}
+.stat-val{font-size:22px;font-weight:900;}
+.stat-lbl{color:#666;font-size:10px;margin-top:1px;}
+.stats-row{display:flex;gap:16px;}
+.progress-track{background:#1e1e2e;border-radius:4px;height:4px;width:100%;margin-bottom:14px;}
+.progress-fill{height:100%;border-radius:4px;transition:width .3s;}
+.opt-btn{background:#12121a;border:1.5px solid #1e1e2e;border-radius:10px;padding:12px 14px;color:#f0f0f0;text-align:left;font-size:14px;line-height:1.45;cursor:pointer;width:100%;font-family:inherit;margin-bottom:10px;}
+.opt-correct{background:#0d2b1a;border-color:#22c55e;color:#22c55e;}
+.opt-wrong{background:#2b0d0d;border-color:#e8002d;color:#e8002d;}
+.opt-muted{color:#666;}
+.exp-card{border-radius:14px;padding:14px 16px;margin-top:2px;margin-bottom:10px;}
+.bar-track{background:#1e1e2e;border-radius:4px;height:6px;}
+.bar-fill{height:100%;border-radius:4px;}
+.hidden{display:none;}
+a.btn{line-height:1.4;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const CATS={
+  radio:     {label:"📡 Radio Comms",    color:"#e8002d"},
+  commentary:{label:"🎙️ Commentary",     color:"#3b82f6"},
+  paddock:   {label:"🏁 Paddock",         color:"#a855f7"},
+  conditions:{label:"🌧️ Race Conditions",color:"#14b8a6"},
+  broadcast: {label:"📺 Broadcast",       color:"#f97316"},
+  verbs:     {label:"🔧 F1 Verbs",        color:"#eab308"},
+};
+
+const VOCAB=[
+{id:"r01",cat:"radio",level:1,term:"Box box",q:'A race engineer says "Box, box." What does this mean?',opts:["Warn the driver of a safety car","Call the driver into the pit lane","Ask the driver to push harder"],ans:1,exp:'"Box" comes from the German word for pit box. Repeated twice to cut through radio noise — the clearest possible instruction to pit.'},
+{id:"r02",cat:"radio",level:1,term:"Push push push",q:'"Push, push, push" — what is the engineer asking?',opts:["Drive flat-out, no saving","Defend position aggressively","Warm up the tyres faster"],ans:0,exp:'"Push" means extract maximum pace. Triple repetition signals urgency — often when chasing or defending in the closing laps.'},
+{id:"r03",cat:"radio",level:1,term:"Lift and coast",q:'"Lift and coast before Turn 3." What should the driver do?',opts:["Brake later to overtake","Come off throttle early to save fuel and brake temps","Use ERS to overtake"],ans:1,exp:'Lifting off throttle before the braking zone and coasting in reduces fuel burn and brake heat. A standard energy-management technique in modern F1.'},
+{id:"r04",cat:"radio",level:1,term:"Gap please",q:'The engineer says "Give me the gap to P3." What does he want?',opts:["Time delta to another car","Tyre temperature reading","Fuel flow data"],ans:0,exp:'"Gap" = the time interval to another car. P3 = third place. Engineers constantly monitor gaps to decide pit stop timing.'},
+{id:"r05",cat:"radio",level:1,term:"Stay out",q:'"We\'re going to stay out." What does this mean?',opts:["Defend the line","The team decides not to pit","Avoid the dirty side of the track"],ans:1,exp:'Staying out means continuing on current tyres without pitting — often a gamble to gain track position or wait for a better strategic window.'},
+{id:"r06",cat:"radio",level:2,term:"Offset strategy",q:'The engineer says they are on an "offset strategy" to their rival. What does this imply?',opts:["Different tyre compound","Different pit stop timing","Different fuel load"],ans:1,exp:'An offset strategy means pitting at a different lap than the rival. The tyre-age difference later in the stint hopefully creates an opportunity to pass.'},
+{id:"r07",cat:"radio",level:2,term:"ERS deployment",q:'"Full ERS on the straight." What is the driver activating?',opts:["Drag Reduction System","Energy Recovery System electrical boost","Extra fuel injection"],ans:1,exp:'The ERS stores energy from braking and the turbo. Drivers deploy this electrical boost for overtaking or defending on long straights.'},
+{id:"r08",cat:"radio",level:2,term:"Delta time",q:'"You\'re plus 0.4 on the delta." What does this tell the driver?',opts:["He is 0.4s faster than target","He is 0.4s slower than the Safety Car delta","His gap to P1 is 0.4s"],ans:1,exp:'Under Safety Car or VSC, drivers must follow a prescribed pace. Being plus means running ahead of the target — risking a penalty.'},
+{id:"r09",cat:"radio",level:2,term:"Tyre temp window",q:'"Tyres not in the window yet." What does this mean?',opts:["Tyres are too worn","Tyres haven\'t reached optimal operating temperature","Tyre pressures are too low"],ans:1,exp:'Each compound has a temperature range for peak grip. Outside this window — too cold or too hot — performance drops significantly.'},
+{id:"r10",cat:"radio",level:3,term:"Undercut",q:'"We think we can undercut him." What is the team planning?',opts:["Pit earlier for fresh tyres and faster laps","Pit later to extend the stint","Use DRS to pass on track"],ans:0,exp:'The undercut: pit before your rival, post faster laps on fresh rubber, and emerge ahead when the rival eventually stops.'},
+{id:"r11",cat:"radio",level:3,term:"Overcut",q:'"The overcut is our play here." What does this mean?',opts:["Stay out longer and leapfrog the rival in the pits","Pit earlier for fresh rubber","Use engine power to overtake before pit sequence"],ans:0,exp:'The overcut: stay out on older tyres, build a gap while the rival pits, then stop later and ideally emerge ahead.'},
+{id:"r12",cat:"radio",level:3,term:"VSC",q:'"VSC deployed." How does this differ from a full Safety Car?',opts:["Drivers must follow the safety car on track","Drivers must hit a minimum delta time — no physical car","Drivers can race but DRS is disabled"],ans:1,exp:'Under the VSC, each driver must slow to a pre-set delta time per sector. No physical car leads the field. Quicker to deploy and recover from than a full SC.'},
+{id:"r13",cat:"radio",level:3,term:"Stack the cars",q:'"We\'re going to stack the cars." What is the team doing?',opts:["Pitting both cars on the same lap","Both cars forming up behind the safety car","Defending with both cars in a train"],ans:0,exp:'Stacking means both cars pit on the same lap. The first exits quickly on fresh tyres; the second loses significant time behind. A difficult call for strategists.'},
+{id:"r14",cat:"radio",level:1,term:"Pit window",q:'"We\'re entering the pit window." What does this signal?',opts:["A gap in traffic ahead","The range of laps where a pit stop is strategically viable","The track is clear for pitting"],ans:1,exp:'The pit window is the strategic lap range where stopping makes sense given tyre life, rival positions, and race pace.'},
+{id:"r15",cat:"radio",level:2,term:"Negative, negative",q:'A driver asks to pit early and hears "Negative, negative." What does this mean?',opts:["The engineer denies the request","There is a problem in the pit lane","The radio signal is broken"],ans:0,exp:'"Negative" is radio protocol for no. Repeated for absolute clarity. The opposite is "Affirm" or "Confirmed."'},
+{id:"r16",cat:"radio",level:2,term:"Out lap",q:'The engineer asks for "a good out lap." What does he want?',opts:["A strong lap before the safety car","The lap after the pit stop to warm tyres","A lap with maximum DRS usage"],ans:1,exp:'The out lap is the first lap on fresh tyres after a pit stop. Warming tyres and brakes correctly on this lap is critical.'},
+{id:"r17",cat:"radio",level:2,term:"In lap",q:'"Give me everything on this in lap." What is the in lap?',opts:["The lap where the driver enters the pits","The fastest lap of the race","The opening lap"],ans:0,exp:'The in lap is the final lap before pitting. Drivers sometimes push hard to maximise their gap before the stop.'},
+{id:"r18",cat:"radio",level:3,term:"Fuel-corrected pace",q:'An engineer says "On fuel-corrected pace, we\'re P2." What does this mean?',opts:["Adjusting lap times to remove the fuel load effect","The car is in P2 after the stop","Fuel strategy puts them in P2"],ans:0,exp:'Heavier fuel slows a car early in stints. Fuel-corrected pace removes this variable, showing true speed relative to rivals.'},
+{id:"r19",cat:"radio",level:2,term:"Plan B",q:'"We\'re going to Plan B." What does this signal?',opts:["A backup component is being fitted","The original race strategy has been abandoned","The driver is switching comms channel"],ans:1,exp:'Teams pre-plan multiple strategies. Plan B is triggered when the original plan is no longer viable — safety car, rival moves, or unexpected tyre deg.'},
+{id:"r20",cat:"radio",level:3,term:"Fuel map",q:'"Switch to fuel map 3." What is the engineer adjusting?',opts:["Fuel tank pressure","Engine settings controlling fuel consumption rate","Brake bias mapping"],ans:1,exp:'Fuel maps are pre-programmed engine modes controlling fuel burn per lap. A more economical map extends range; a more aggressive one gives more power.'},
+{id:"r21",cat:"radio",level:1,term:"Confirmed",q:'After a pit stop call, the driver says "Confirmed." What does this mean?',opts:["The driver agrees and will comply","The driver wants more information","The driver is asking for the gap"],ans:0,exp:'"Confirmed" closes the communication loop: message received and I will act on it. Prevents costly misunderstandings during race-critical moments.'},
+{id:"r22",cat:"radio",level:3,term:"Brake magic",q:'"Adjust brake magic to 4." What is this system?',opts:["Brake bias front to rear","Electronic rear brake torque modulation interacting with ERS","Brake cooling duct aperture"],ans:1,exp:'"Brake magic" modulates rear brake torque electronically, managing the interaction between mechanical rear brakes and the MGU-K energy recovery.'},
+{id:"r23",cat:"radio",level:2,term:"Copy that",q:'After a driver message, the engineer replies "Copy that." What does this confirm?',opts:["The engineer agrees with the driver","The engineer has understood the message","The engineer will escalate to the pit wall"],ans:1,exp:'"Copy" is standard radio protocol: message received and understood. Does not imply agreement — just acknowledgment.'},
+{id:"r24",cat:"radio",level:3,term:"Scrubbed tyres",q:'The engineer says they\'ll start on "scrubbed tyres." What are these?',opts:["Tyres used 1-2 laps to remove the green surface film","Tyres cleaned with solvent","Brand-new tyres from the Pirelli allocation"],ans:0,exp:'Scrubbed tyres have been heat-cycled in practice, removing the slippery new-tyre surface. They warm up faster and behave more predictably.'},
+{id:"c01",cat:"commentary",level:1,term:"Pace",q:'A commentator says "Hamilton has the pace today." What do they mean?',opts:["Hamilton is managing energy well","Hamilton has outright speed to compete at the front","Hamilton is conserving tyres effectively"],ans:1,exp:'"Pace" in F1 commentary means raw speed. Having the pace means the car and driver are genuinely quick relative to rivals.'},
+{id:"c02",cat:"commentary",level:1,term:"Dirty air",q:'A driver is struggling in "dirty air." What is happening?',opts:["Debris on track causing tyre damage","Turbulent wake from the car ahead reducing downforce","High humidity affecting tyre grip"],ans:1,exp:'Dirty air is the turbulent wake left by a car. It disrupts the following car\'s aerodynamics, reducing downforce and making corners harder.'},
+{id:"c03",cat:"commentary",level:1,term:"DRS",q:'"He\'s got DRS." What does this enable?',opts:["Extra tyre grip in the rain","Opening of the rear wing flap to reduce drag","Deployment of extra ERS power"],ans:1,exp:'DRS (Drag Reduction System) opens a flap in the rear wing, adding roughly 10-12 km/h of top speed. Available within 1 second of the car ahead in DRS zones.'},
+{id:"c04",cat:"commentary",level:2,term:"Lottery",q:'A commentator calls a wet race a "lottery." What do they mean?',opts:["Results are unpredictable due to weather and strategy chaos","Points are distributed randomly","The fastest pit stop team wins"],ans:0,exp:'In wet conditions the result becomes unpredictable — timing of weather changes, tyre calls, and safety cars can completely shuffle the order.'},
+{id:"c05",cat:"commentary",level:2,term:"Sandbagging",q:'A pundit accuses a team of "sandbagging" in testing. What are they claiming?',opts:["Running illegal ballast","Deliberately hiding true performance potential","Complaining to the FIA about rivals"],ans:1,exp:'Sandbagging means running deliberately slowly to conceal real pace. Heavy fuel loads or lower engine modes mislead rivals about true competitiveness.'},
+{id:"c06",cat:"commentary",level:2,term:"Purple sector",q:'"He\'s gone purple in sector two." What does this mean?',opts:["The driver made a mistake in sector two","He set the overall fastest time in that sector","He activated DRS in that sector"],ans:1,exp:'Timing screens show sectors in purple for the overall fastest time. Green = personal best. Purple = fastest of anyone on track.'},
+{id:"c07",cat:"commentary",level:2,term:"Snap of oversteer",q:'"Big snap of oversteer through Turn 6." What happened?',opts:["The rear of the car stepped out suddenly","The front lost grip","The driver locked up under braking"],ans:0,exp:'Oversteer = rear loses traction relative to front, causing the tail to swing wide. A "snap" means it happened suddenly and violently.'},
+{id:"c08",cat:"commentary",level:2,term:"Graining",q:'A commentator says the tyres are "graining." What is this?',opts:["Tyres overheating and blistering","Small rubber strips tearing off, reducing grip temporarily","Tyres underinflated due to cold temps"],ans:1,exp:'Graining occurs when tyre surface temperature is inconsistent — strips tear off and re-attach. Grip suffers temporarily then recovers as the tyre scrubs in.'},
+{id:"c09",cat:"commentary",level:3,term:"Blistering",q:'"Serious blistering on the rears." How is this different from graining?',opts:["Same phenomenon, different name","Overheating creates bubbles under the surface, permanently damaging the compound","A tyre fully worn through"],ans:1,exp:'Blistering is heat-induced structural damage: bubbles form under the compound. Unlike graining it does not recover — performance drops rapidly.'},
+{id:"c10",cat:"commentary",level:3,term:"Porpoising",q:'"The car is porpoising badly on the straight." What is this?',opts:["Rhythmic bouncing from ground-effect aerodynamics stalling","Suspension failure causing vertical movement","Driver weaving to avoid debris"],ans:0,exp:'Porpoising: ground-effect floor generates downforce, seals to the ground, airflow stalls, car rises, downforce returns — a rapid repeating cycle.'},
+{id:"c11",cat:"commentary",level:2,term:"Marbles",q:'"He went off-line and hit the marbles." What are marbles?',opts:["Gravel at the edge of the track","Balls of degraded rubber accumulating off the racing line","Painted kerbs on the apex"],ans:1,exp:'Marbles are pieces of shed tyre rubber that collect off the racing line. They drastically reduce grip, making off-line moves very risky.'},
+{id:"c12",cat:"commentary",level:1,term:"Wheel to wheel",q:'"Incredible wheel-to-wheel racing." What kind of racing is this?',opts:["Team-mates coordinating pit stops","Two cars fighting closely side by side","A driver lapping backmarkers"],ans:1,exp:'Wheel-to-wheel racing = two cars battling close together, literally wheels alongside wheels, in direct competition through corners and straights.'},
+{id:"c13",cat:"commentary",level:2,term:"Flat spot",q:'"He\'s got a flat spot." What happened?',opts:["A tyre puncture","A section worn flat from a lockup, causing vibration","Tyre pressure dropped in cold air"],ans:1,exp:'A flat spot forms when the driver locks a wheel under braking — the tyre skids and a flat section grinds into the rubber. The vibration can force an early pit stop.'},
+{id:"c14",cat:"commentary",level:3,term:"Traction circle",q:'A broadcaster mentions "the limits of the traction circle." What is this?',opts:["The total grip budget a tyre has for braking, cornering, and acceleration combined","The path the tyre traces on track","The thermal degradation profile"],ans:0,exp:'The traction circle represents total tyre grip. A driver can use it for cornering, braking, or acceleration — but not all at once. Managing this is the art of F1 driving.'},
+{id:"c15",cat:"commentary",level:2,term:"Locking up",q:'"Big lockup into Turn 1." What did the driver do?',opts:["Missed a gear change","Braked so hard the wheels stopped rotating and tyres skidded","Applied too much ERS to the front axle"],ans:1,exp:'A lockup occurs when braking force exceeds tyre grip, causing the wheel to stop rotating. The tyre skids, flat-spotting instantly.'},
+{id:"c16",cat:"commentary",level:1,term:"Slipstream",q:'A driver sits in the "slipstream" of the car ahead. What advantage does this give?',opts:["Protection from crosswinds","Reduced drag from the low-pressure wake, enabling higher top speed","Better tyre temperature from the wake heat"],ans:1,exp:'The slipstream (or tow) is the low-pressure zone behind a car. The following car faces less air resistance and achieves higher straight-line speed.'},
+{id:"c17",cat:"commentary",level:3,term:"MGU-K and MGU-H",q:'A technical analyst explains the MGU-K and MGU-H. What are these?',opts:["Two types of fuel injectors","Motor Generator Units for kinetic and heat energy recovery","Two types of clutch in the gearbox"],ans:1,exp:'MGU-K recovers kinetic energy under braking. MGU-H recovers heat energy from the turbocharger. Together they form the ERS hybrid system in modern F1.'},
+{id:"c18",cat:"commentary",level:2,term:"Running long",q:'"He\'s running very long." What does this mean strategically?',opts:["Taking a long line through corners","Extending his stint beyond the expected tyre window","Adding extra laps on a heavy fuel load"],ans:1,exp:'Running long = staying out on ageing tyres beyond their ideal stint length. Teams do this to execute an overcut or wait for a safety car.'},
+{id:"c19",cat:"commentary",level:3,term:"Aero balance",q:'"They\'ve shifted the aero balance rearward." What did the team change?',opts:["Added more front wing angle","Adjusted the downforce distribution between front and rear axle","Moved the rear wing lower"],ans:1,exp:'Aero balance describes the front-to-rear downforce ratio. Shifting it rearward gives more rear stability but less front grip.'},
+{id:"c20",cat:"commentary",level:2,term:"Thermal degradation",q:'A commentator warns of "thermal deg" on the softs. What is this?',opts:["Chemical breakdown of the compound from heat cycles","Overheating causing the compound to break down faster than mechanical wear","Tyre pressure loss from high track temps"],ans:1,exp:'Thermal deg occurs when tyre temperature exceeds the optimal window, chemically breaking down the rubber. Softer compounds at high-energy circuits are especially vulnerable.'},
+{id:"c21",cat:"commentary",level:3,term:"Rake angle",q:'Commentators discuss a car\'s "rake angle." What is this?',opts:["Front wing angle relative to the road","The nose-down, tail-up pitch angle of the car","The camber setting of the rear tyres"],ans:1,exp:'Rake = how much lower the nose sits compared to the tail. High rake increases ground-effect downforce from the floor.'},
+{id:"c22",cat:"commentary",level:2,term:"Kerb-hopping",q:'A commentator says the driver is "kerb-hopping" through the chicane. What is this?',opts:["Running wide onto the grass","Using kerbs aggressively to shorten the car\'s path","A dangerous move causing car damage"],ans:1,exp:'Kerb-hopping means riding over kerbs at the apex and exit to shorten the trajectory through technical sections.'},
+{id:"c23",cat:"commentary",level:1,term:"Gap to leader",q:'"His gap to the leader is 4.2 seconds." What does gap mean here?',opts:["Tyre performance delta to the leader","Elapsed time between that car and the race leader","Number of laps behind the leader"],ans:1,exp:'Time gap = elapsed time between two cars passing a timing point. A 4.2s gap means the car ahead crossed the reference point 4.2 seconds earlier.'},
+{id:"c24",cat:"commentary",level:1,term:"Out of position",q:'"He\'s badly out of position after Turn 1." What does this mean?',opts:["The driver missed his braking point","The driver is running lower in the order than expected","The car is pointing the wrong way"],ans:1,exp:'Out of position = running higher or lower than expected — usually after a bad start, first-lap incident, or Safety Car.'},
+{id:"c25",cat:"commentary",level:2,term:"Floor it",q:'"He floors it out of the hairpin." What does this mean?',opts:["The driver brakes hard","The driver applies full throttle","The driver hits a kerb"],ans:1,exp:'To floor it = press the throttle to the floor = maximum acceleration. Common informal commentary expression.'},
+{id:"p01",cat:"paddock",level:1,term:"The Paddock",q:'When a host mentions "the paddock," what area are they referring to?',opts:["The pit lane during the race","The restricted area with team motorhomes and garages","The commentator booth"],ans:1,exp:'The paddock is the exclusive secured area behind the garages where team motorhomes, hospitality, and personnel are based. Access requires a pass.'},
+{id:"p02",cat:"paddock",level:1,term:"DNF",q:'"That\'s a DNF for Sainz." What happened?',opts:["Did Not Finish — the car retired","Did Not Qualify for the race","Disqualified due to an infringement"],ans:0,exp:'DNF = Did Not Finish. The car retired before the chequered flag due to mechanical failure, accident, or team decision.'},
+{id:"p03",cat:"paddock",level:1,term:"Parc fermé",q:'"Cars are now in parc fermé." What restriction applies?',opts:["No media allowed near the cars","Teams cannot make significant changes to the car after qualifying","Drivers must remain in the car"],ans:1,exp:'Parc fermé is a controlled enclosure where cars are held between qualifying and the race. Significant setup changes are prohibited.'},
+{id:"p04",cat:"paddock",level:2,term:"Homologated",q:'A technical analyst says a component is "homologated." What does this mean?',opts:["Approved and certified by the FIA as compliant","Made using sustainable materials","Shared between two teams under a supply deal"],ans:0,exp:'Homologation is formal FIA approval confirming a component meets technical regulations. Once a PU element is homologated, it cannot be changed mid-season without a grid penalty.'},
+{id:"p05",cat:"paddock",level:2,term:"FIA stewards",q:'"The incident has been referred to the stewards." Who are they?',opts:["Marshals who wave flags on track","A panel of officials who investigate incidents and apply penalties","The safety car drivers"],ans:1,exp:'Stewards are FIA-appointed race officials who review incidents, determine fault, and impose penalties — time additions, drive-throughs, grid drops.'},
+{id:"p06",cat:"paddock",level:1,term:"Grid penalty",q:'"He\'s taken a 5-place grid penalty." What does this mean?',opts:["He starts 5 places lower than his qualifying position","He loses 5 championship points","He must start from the pit lane"],ans:0,exp:'A grid penalty drops a driver a set number of positions from their qualifying result. A 5-place penalty moves a P3 qualifier to P8.'},
+{id:"p07",cat:"paddock",level:3,term:"Flexi-wing",q:'Rivals accuse a team of having a "flexi-wing." What is the allegation?',opts:["Using an oversized front wing","A wing that flexes under load to gain aero advantage while passing static FIA tests","A wing with misleading livery"],ans:1,exp:'A flexi-wing bends at racing speeds to reduce drag, but springs back to pass the FIA\'s static load tests in the garage. A contentious regulatory grey area.'},
+{id:"p08",cat:"paddock",level:2,term:"Power unit penalty",q:'A driver takes a "new power unit element" and gets a grid penalty. Why?',opts:["Each driver is limited to a set number of elements per season","A new unit is heavier and must be declared","New units require FIA approval in testing only"],ans:0,exp:'Regulations limit the number of PU elements per driver per season. Exceeding the allowance triggers a grid penalty.'},
+{id:"p09",cat:"paddock",level:1,term:"Formation lap",q:'"We\'re on the formation lap." What is happening?',opts:["The first racing lap after lights out","The pre-race lap from the grid and back before the start","A lap behind the safety car"],ans:1,exp:'The formation lap sees cars leave the grid, circulate the track, and return to their grid slots. Drivers use it to warm tyres and brakes.'},
+{id:"p10",cat:"paddock",level:1,term:"Chequered flag",q:'"He takes the chequered flag!" What has happened?',opts:["A penalty has been awarded","The race is over — the leader crossed the finish line","The safety car period has ended"],ans:1,exp:'The chequered flag (black and white) is waved when the leader completes the final lap. All other cars finish when they cross the line.'},
+{id:"p11",cat:"paddock",level:3,term:"Cost cap",q:'A pundit says a team may have breached the "cost cap." What is this?',opts:["Maximum fuel budget per race","Annual limit on team spending to promote competitive fairness","Maximum staff allowed at the circuit"],ans:1,exp:'The FIA financial cost cap (introduced 2021) limits annual spending on car development and operations. Breaches result in sporting and financial penalties.'},
+{id:"p12",cat:"paddock",level:2,term:"Constructors\' Championship",q:'A host says a team leads the "Constructors\' Championship." What is this?',opts:["A title based on car speed measurements","Points from both drivers combined for each team","A title for the team that builds the fastest chassis"],ans:1,exp:'The Constructors\' Championship tallies both drivers\' points for each team. A team can win it even if neither driver wins the Drivers\' title.'},
+{id:"p13",cat:"paddock",level:2,term:"Tyre blankets",q:'Mechanics remove "tyre blankets" before the driver leaves. What are these?',opts:["Rubber covers protecting tyres during transit","Electrically heated wraps pre-heating tyres to operating temperature","Rain covers protecting from moisture"],ans:1,exp:'Tyre blankets are electric heating wraps bringing tyres to near-operating temperature. Without them, out-lap grip would be dangerously poor.'},
+{id:"p14",cat:"paddock",level:2,term:"GPDA",q:'An interview mentions the "GPDA." What is this?',opts:["Grand Prix Drivers\' Association — drivers\' collective voice on safety and governance","Global Paddock Data Authority handling timing","The governing body for privateer entrants"],ans:0,exp:'The GPDA represents F1 drivers collectively in discussions with the FIA and FOM on safety, scheduling, and governance.'},
+{id:"p15",cat:"paddock",level:3,term:"Ballast",q:'An analyst explains a team has moved "ballast" forward. Why?',opts:["To increase fuel capacity","To adjust weight distribution and alter handling balance","To pass minimum weight requirements"],ans:1,exp:'Ballast is moveable weight placed in the car within regulations. Moving it forward increases front-end grip; rearward adds rear stability.'},
+{id:"p16",cat:"paddock",level:1,term:"Fastest lap point",q:'"He sets the fastest lap with three laps to go." What is the incentive?',opts:["One bonus championship point if he finishes in the top 10","A free tyre set for the next race","Priority pit lane entry at the next event"],ans:0,exp:'Since 2019, a bonus point is awarded for the fastest race lap — but only if the driver finishes in the top 10. Teams often pit late for fresh softs to chase it.'},
+{id:"p17",cat:"paddock",level:2,term:"Team Principal",q:'A post-race interview is with the "Team Principal." What is their role?',opts:["The lead chassis engineer","The overall head of the team — operations, strategy, and public representation","The FIA representative embedded in the team"],ans:1,exp:'The Team Principal (TP) is the executive head of an F1 team. They oversee all operations, make strategic calls, and represent the team publicly.'},
+{id:"p18",cat:"paddock",level:3,term:"Concorde Agreement",q:'A journalist mentions the "Concorde Agreement." What is this?',opts:["The engine supply agreement between manufacturers","The commercial contract between teams, FIA, and Formula One Management","Safety regulations governing circuit homologation"],ans:1,exp:'The Concorde Agreement is the foundational commercial contract governing F1: prize money distribution, governance rights, and terms of entry.'},
+{id:"p19",cat:"paddock",level:2,term:"Impede in qualifying",q:'A driver is investigated for "impeding" a rival in qualifying. What did they do?',opts:["Made illegal contact in the pit lane","Blocked or slowed another car on their fast lap","Used an illegal engine mode"],ans:1,exp:'Impeding in qualifying means obstructing another driver\'s timed lap. It is one of the most serious qualifying offences and typically results in a grid penalty.'},
+{id:"p20",cat:"paddock",level:3,term:"Quali simulation",q:'During practice a team sends a car on a "quali sim." What are they doing?',opts:["Testing race pace on full fuel","Running a lap on a new soft tyre to simulate qualifying conditions","Practising pit stop sequences"],ans:1,exp:'A quali sim is a practice run on fresh soft tyres with low fuel, replicating Q3 flying-lap conditions. Teams use it to assess one-lap pace.'},
+{id:"w01",cat:"conditions",level:1,term:"Safety Car",q:'"Safety car is out." What changes immediately?',opts:["The race is paused","All cars must queue behind the safety car — no overtaking","All cars must pit immediately"],ans:1,exp:'Under the Safety Car the field bunches up behind it. Overtaking is prohibited. Laps are neutralised. Most teams use this as a free pit stop window.'},
+{id:"w02",cat:"conditions",level:1,term:"Red flag",q:'"Red flag — the race has been stopped." What happens next?',opts:["All cars park on track immediately","All cars return to the pit lane and the race is suspended","All cars return to qualifying grid positions"],ans:1,exp:'A red flag stops the race. Cars return to the pit lane where teams can make repairs and tyre changes. The race typically resumes with a standing or rolling start.'},
+{id:"w03",cat:"conditions",level:2,term:"Track limits",q:'A driver is warned for "exceeding track limits." What does this mean?',opts:["Speeding in the pit lane","Running all four wheels beyond the white lines defining the track boundary","Making contact outside the DRS zone"],ans:1,exp:'Track limits are defined by white painted lines at the edge of the circuit. All four wheels must stay within them. Repeated violations result in lap time deletions or penalties.'},
+{id:"w04",cat:"conditions",level:2,term:"Intermediates",q:'The team calls the driver in for "intermediates." What tyres are these?',opts:["Extra-soft compound for warm dry tracks","Grooved tyres for a damp track — not fully wet, not fully dry","Full wet tyres for standing water"],ans:1,exp:'Intermediates (inters) are grooved rain tyres for damp, transitional conditions. They displace water but generate heat faster than full wets. Timing the switch is a critical call.'},
+{id:"w05",cat:"conditions",level:2,term:"Full wets",q:'A commentator says drivers should be on "full wets." What conditions require these?',opts:["Mist and light drizzle","Heavy rain with significant standing water","Wet kerbs but a dry racing line"],ans:1,exp:'Full wet tyres (blue sidewall) handle heavy rain and standing water. They displace large volumes of water but overheat rapidly on a drying track.'},
+{id:"w06",cat:"conditions",level:1,term:"Safety car restart",q:'"We\'re about to have a safety car restart." What happens?',opts:["A standing start from the grid","The safety car peels off and the leader can accelerate after the line","A red flag procedure"],ans:1,exp:'At a Safety Car restart, the safety car peels into the pit lane and the leader decides when to accelerate after crossing the start/finish line.'},
+{id:"w07",cat:"conditions",level:3,term:"VSC delta penalty",q:'Under VSC, what happens if a driver goes too fast through a sector?',opts:["A drive-through is automatically triggered","A 5-second time penalty is applied after the race","A black and white flag warning is shown"],ans:1,exp:'Exceeding the prescribed VSC delta in a sector results in a post-race time penalty — typically 5 seconds. Timing systems monitor each driver in real time.'},
+{id:"w08",cat:"conditions",level:2,term:"Drying line",q:'A commentator says "the dry line is coming in." What does this mean?',opts:["The racing line is drying faster than the rest of the track","The entire circuit is now dry","Teams are fitting slick tyres"],ans:0,exp:'As a wet track dries, the rubber-laid racing line dries first. This narrow strip offers grip for slicks while the surrounding tarmac remains wet. Timing the switch to slicks is one of F1\'s most exciting strategic moments.'},
+{id:"w09",cat:"conditions",level:1,term:"Aquaplaning",q:'A driver complains of "aquaplaning" on the straight. What is happening?',opts:["Tyres overheating in standing water","A film of water lifts the tyre off the tarmac, causing total loss of control","The diffuser fills with water causing understeer"],ans:1,exp:'Aquaplaning occurs when water builds up under the tyre faster than it can be dispersed, lifting the rubber off the surface. The driver loses all steering and braking ability momentarily.'},
+{id:"w10",cat:"conditions",level:3,term:"Safety car window",q:'A strategist says "there\'s a safety car window here." What does this mean?',opts:["The pit lane is open and safe to enter","A lap range where pitting under a safety car would cost very little time","A safety car period is confirmed"],ans:1,exp:'A safety car window is a period where, if a safety car comes out, a pit stop would cost minimal time. Strategists factor this probability into their recommendations.'},
+{id:"w11",cat:"conditions",level:2,term:"Crosswind tyre deg",q:'A strategist mentions "crosswind affecting tyre deg on the right-handers." What is happening?',opts:["Wind is cooling tyres on one side unevenly","The crosswind increases load on the outer tyre in right-hand corners, accelerating wear","Wind is causing aerodynamic instability mid-corner"],ans:1,exp:'Crosswinds change the aerodynamic load on specific corners, affecting which tyres degrade faster. This feeds directly into tyre compound and stint length decisions.'},
+{id:"b01",cat:"broadcast",level:1,term:"Walk us through",q:'A presenter says "Walk us through what happened at Turn 1." What are they asking for?',opts:["A diagram of the corner","A step-by-step account of the incident","A lap time comparison"],ans:1,exp:'"Walk us through" is a standard broadcast phrase requesting a clear, sequential explanation of a specific moment.'},
+{id:"b02",cat:"broadcast",level:1,term:"Let\'s throw to",q:'"Let\'s throw to our pit lane reporter." What is about to happen?',opts:["The broadcast cuts to a commercial break","The show switches to a reporter in a different location","The host introduces a replay"],ans:1,exp:'"Throw to" is broadcast language for switching live coverage to another person or location — pit lane reporter, analyst desk, or trackside correspondent.'},
+{id:"b03",cat:"broadcast",level:1,term:"What\'s your read on",q:'"What\'s your read on the Mercedes strategy?" What is the presenter asking?',opts:["The analyst\'s opinion and interpretation","Official team data","A lap-by-lap replay"],ans:0,exp:'"Your read on" asks for a personal interpretation or informed opinion — not facts, but analysis. Common in F1 TV when asking ex-drivers or analysts to assess a situation.'},
+{id:"b04",cat:"broadcast",level:2,term:"Warm Up show",q:'On F1 TV Pro, the "Warm Up" show covers what?',opts:["The final practice session","Pre-race build-up, grid walk, and analysis before lights out","Post-qualifying driver interviews"],ans:1,exp:'Warm Up is F1 TV Pro\'s pre-race programme: paddock reports, strategy previews, grid walks, team interviews, and the national anthem — everything up to lights out.'},
+{id:"b05",cat:"broadcast",level:1,term:"Post-race show",q:'What does a "post-race show" on F1 TV Pro typically include?',opts:["Only the podium ceremony","Race analysis, driver interviews, team radio highlights, and strategic breakdown","Qualifying replays and press conferences"],ans:1,exp:'The post-race show covers the full podium ceremony, key team radio moments, strategic analysis, driver reactions, and expert commentary on pivotal moments.'},
+{id:"b06",cat:"broadcast",level:2,term:"Let\'s have a look at the data",q:'An analyst says "Let\'s have a look at the data." What follows?',opts:["A replay of the incident","Telemetry graphs, lap time comparisons, or sector analysis","A driver interview"],ans:1,exp:'"Look at the data" introduces technical graphics — telemetry traces, tyre degradation curves, speed traces, or gap charts — to support an analytical point.'},
+{id:"b07",cat:"broadcast",level:1,term:"Pit lane reporter",q:'A "pit lane reporter" is live during the race. What do they cover?',opts:["Analysis from the commentary booth","Team activity, pit stops, and driver reactions from the pit lane area","Official decisions from race control"],ans:1,exp:'The pit lane reporter covers live pit stops, team strategy calls, mechanical issues, and post-race driver reactions immediately after they exit the car.'},
+{id:"b08",cat:"broadcast",level:2,term:"Technical analyst",q:'A presenter introduces a "technical analyst." What is their role?',opts:["An official F1 supplier sponsoring the broadcast","A former engineer or expert providing in-depth technical analysis","A team representative giving official comments"],ans:1,exp:'A technical analyst is typically a former engineer or designer brought in to explain aerodynamic, mechanical, or strategic topics in accessible terms.'},
+{id:"b09",cat:"broadcast",level:2,term:"Lights out",q:'What is the famous phrase used by F1 TV commentators the moment the race starts?',opts:["It\'s lights out and away we go!","The race is on!","Green light — go go go!"],ans:0,exp:'"It\'s lights out and away we go!" is the iconic phrase used by lead F1 commentators as the race start lights go out. Instantly recognisable to any F1 TV viewer.'},
+{id:"b10",cat:"broadcast",level:1,term:"Onboard camera",q:'An "onboard camera" shot is shown. What does the viewer see?',opts:["The view from a camera mounted on the car","A trackside camera following the car","A helicopter aerial shot"],ans:0,exp:'Onboard cameras are mounted on the car — typically on the roll hoop. They give viewers a first-person perspective of the driver\'s view, showing steering inputs and braking zones.'},
+{id:"v01",cat:"verbs",level:1,term:"To pit",q:'An engineer says "We\'re going to pit this lap." What does "to pit" mean?',opts:["Enter the pit lane for tyres and/or repairs","Park the car and retire","Slow down behind a safety car"],ans:0,exp:'"To pit" means to enter the pit lane for a scheduled stop — typically for new tyres, a wing adjustment, or repairs. The most fundamental verb in F1 race strategy.'},
+{id:"v02",cat:"verbs",level:1,term:"To qualify",q:'"He didn\'t qualify for Q3." What does "to qualify" mean here?',opts:["Earn the right to advance to the next segment by setting a fast enough lap","Complete the medical check","Pass scrutineering"],ans:0,exp:'Qualifying = setting a fast enough lap time in Q1/Q2 to advance to the next knockout segment. Failing to qualify for Q3 means starting from a lower grid position.'},
+{id:"v03",cat:"verbs",level:1,term:"To retire",q:'"The car has retired from the race." What does "to retire" mean?',opts:["The driver has ended their F1 career","The car has stopped and will not continue the race","The team has withdrawn from the season"],ans:1,exp:'To retire a car means pulling out of the race before the chequered flag — mechanical failure, accident, or strategic decision. Results in a DNF.'},
+{id:"v04",cat:"verbs",level:1,term:"To lap",q:'"Verstappen has lapped Hamilton." What does "to lap" mean?',opts:["Verstappen has gained a full lap on Hamilton, passing him on track","Verstappen has set a faster lap time","Verstappen has overtaken Hamilton for the lead"],ans:0,exp:'To lap a driver means to pass them while leading by a full lap — putting them one lap down. Lapped cars must yield to the leader and are shown a blue flag.'},
+{id:"v05",cat:"verbs",level:2,term:"To degrade",q:'A commentator says "the tyres are degrading rapidly." What is happening?',opts:["Tyres are losing performance as the compound wears and breaks down","Tyre pressure is dropping","Tyre temperature is falling"],ans:0,exp:'Tyre degradation = progressive performance loss as the compound wears down or chemically breaks down. Rate of degradation is one of the most critical variables in race strategy.'},
+{id:"v06",cat:"verbs",level:2,term:"To gap",q:'"He\'s gapping the field." What does "to gap" mean as a verb?',opts:["Closing the gap to the car ahead","Building a lead — increasing the time interval to cars behind","Maintaining a constant gap to defend"],ans:1,exp:'"To gap" someone = to build a time advantage over them, increasing the interval. "Gapping the field" = pulling away from all rivals simultaneously.'},
+{id:"v07",cat:"verbs",level:2,term:"To lock up",q:'"He\'s locking up repeatedly into the chicane." What is the driver doing?',opts:["Braking so hard the wheels stop rotating and the tyres skid","Applying too much steering angle","Running wide onto the kerbs"],ans:0,exp:'Locking up = braking force exceeds tyre grip, wheels stop rotating, tyre skids. Creates flat spots and significant vibration. A sign of driver error or brake balance issues.'},
+{id:"v08",cat:"verbs",level:2,term:"To scrub speed",q:'"The driver is scrubbing speed mid-corner." What does "to scrub" mean here?',opts:["Washing off speed unintentionally due to understeer or a wide line","Cleaning debris from the tyres","Warming the tyres with weaving"],ans:0,exp:'Scrubbing speed = losing velocity unnecessarily, typically because the car\'s line is not optimal or the front end pushes wide. Every bit of scrubbed speed costs lap time.'},
+{id:"v09",cat:"verbs",level:1,term:"To overtake",q:'A commentator shouts "He\'s going to overtake!" What is about to happen?',opts:["The driver will make a pit stop","One driver will pass another on track","The driver will set a fastest lap"],ans:1,exp:'To overtake = to pass another car on track. F1 distinguishes between skill-based overtakes and those enabled by DRS.'},
+{id:"v10",cat:"verbs",level:2,term:"To undercut",q:'"Leclerc is trying to undercut Norris." What does "to undercut" mean?',opts:["Pit before the rival and use fresh tyres to emerge ahead","Shadow the rival\'s strategy exactly","Pit later and build a bigger lead before stopping"],ans:0,exp:'To undercut = pit before your rival, capitalise on faster lap times with fresh rubber, and aim to emerge ahead when the rival eventually pits.'},
+{id:"v11",cat:"verbs",level:2,term:"To manage",q:'"He\'s managing the gap to the car behind." What does "to manage" mean in F1?',opts:["Driving as fast as possible","Deliberately controlling pace — conserving tyres, fuel, or maintaining a specific gap","Asking the engineer for strategic advice"],ans:1,exp:'"Managing" = deliberately controlling something — tyres, fuel, the gap, brake temperatures. The opposite of pushing flat-out. A constant balancing act.'},
+{id:"v12",cat:"verbs",level:3,term:"To porpoise",q:'"The car is porpoising." What is the car doing?',opts:["Oscillating vertically at high speed due to ground-effect stalling","Sliding sideways in slow corners","Losing rear downforce under braking"],ans:0,exp:'To porpoise = to bounce rhythmically at high speed. A ground-effect floor generates downforce, seals to the ground, airflow stalls, the car rises, and the cycle repeats rapidly.'},
+{id:"v13",cat:"verbs",level:2,term:"To defend",q:'"He\'s defending brilliantly." What is the driver doing?',opts:["Protecting his position against a car trying to overtake","Blocking the pit lane entry","Driving cautiously to avoid contact"],ans:0,exp:'To defend = protecting track position against a pursuing car. In F1, a driver is allowed one defensive move per straight. A second move is illegal blocking.'},
+{id:"v14",cat:"verbs",level:1,term:"To set a lap time",q:'"He\'s just set a lap time." What has the driver done?',opts:["Completed a full timed lap and recorded a time","Compared his pace to a rival","Set a new track record"],ans:0,exp:'Setting a lap time = completing a full timed circuit. In qualifying this is called a flying lap. The time is compared against all other drivers to determine grid position.'},
+{id:"v15",cat:"verbs",level:3,term:"To stall aerodynamically",q:'An analyst says "the floor stalls at high speed." What does "to stall" mean aerodynamically?',opts:["The engine cuts out","Airflow separates from an aerodynamic surface, causing sudden downforce loss","The rear wing opens too early"],ans:1,exp:'Aerodynamic stall = airflow detaches from a surface abruptly, eliminating the downforce that surface was generating. In ground-effect floors this triggers porpoising.'},
+{id:"v16",cat:"verbs",level:2,term:"To grain",q:'"The soft tyre is graining already." What does "to grain" mean?',opts:["The tyre is generating too much heat and blistering","The tyre surface is tearing and re-depositing small rubber strips, temporarily reducing grip","The tyre is wearing through to the canvas"],ans:1,exp:'To grain = to undergo graining. The tyre surface temperature is uneven, causing strips to shear and re-deposit. Grip drops temporarily then recovers.'},
+{id:"v17",cat:"verbs",level:1,term:"To qualify on pole",q:'"He\'s qualified on pole." What does this mean?',opts:["He has started from the front of the grid","He has set the fastest time in qualifying and will start from first place","He has won the race from pole position"],ans:1,exp:'Qualifying on pole = setting the fastest time in Q3 and starting from first on the grid. The pole-sitter starts ahead of the entire field.'},
+{id:"v18",cat:"verbs",level:2,term:"To nurse",q:'"He\'s nursing the car to the finish." What does "to nurse" mean?',opts:["Pushing flat-out for the final laps","Driving carefully to protect a failing component or worn tyres","Asking engineers for constant feedback"],ans:1,exp:'To nurse a car = to drive gently and protectively. Used when a component is failing, tyres are critically worn, or fuel is dangerously low.'},
+{id:"v19",cat:"verbs",level:2,term:"To clip",q:'"He clipped the wall at Turn 9." What does "to clip" mean?',opts:["A full crash into the barrier","A light, glancing contact — brushing the wall or kerb","Missing the apex entirely"],ans:1,exp:'To clip = to make very light contact. Clipping a wall might damage a wing endplate but the car continues. Clipping an apex kerb is often intentional to take the tightest line.'},
+{id:"v20",cat:"verbs",level:3,term:"To run out of downforce",q:'"He\'s run out of downforce through the high-speed section." What does this mean?',opts:["The ERS power has depleted","The car\'s aerodynamic grip is insufficient for the speed in that corner","The driver has exceeded the traction circle"],ans:1,exp:'Running out of downforce = aerodynamic grip is not enough to hold the car on the intended line at the current speed. The car goes wide or becomes unstable.'},
+];
+
+// ── SM-2 ──────────────────────────────────────────────────────────────────────
+function sm2(card,q){
+  let{ef=2.5,interval=1,reps=0}=card||{};
+  if(q<3){reps=0;interval=1;}
+  else{
+    if(reps===0)interval=1;
+    else if(reps===1)interval=6;
+    else interval=Math.round(interval*ef);
+    reps++;
+  }
+  ef=Math.max(1.3,ef+(0.1-(5-q)*(0.08+(5-q)*0.02)));
+  return{ef,interval,reps,nextDue:Date.now()+interval*86400000};
+}
+function quality(correct,ms){
+  if(!correct)return 1;
+  if(ms<4000)return 5;
+  if(ms<8000)return 4;
+  return 3;
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+function loadCards(){try{return JSON.parse(localStorage.getItem("f1v_cards")||"{}")}catch{return{}}}
+function saveCards(c){try{localStorage.setItem("f1v_cards",JSON.stringify(c))}catch{}}
+function loadStats(){try{return JSON.parse(localStorage.getItem("f1v_stats")||"null")||{sessions:0,correct:0,total:0,streak:0,lastDate:null,history:[]}}catch{return{sessions:0,correct:0,total:0,streak:0,lastDate:null,history:[]}}}
+function saveStats(s){try{localStorage.setItem("f1v_stats",JSON.stringify(s))}catch{}}
+
+// ── SESSION BUILD ─────────────────────────────────────────────────────────────
+function buildSession(cards,cat,n=10){
+  const now=Date.now();
+  const src=cat==="all"?VOCAB:VOCAB.filter(v=>v.cat===cat);
+  const due=src.filter(v=>{const c=cards[v.id]||{};return!c.nextDue||c.nextDue<=now;});
+  const sorted=[...due].sort((a,b)=>((cards[a.id]||{}).nextDue||0)-((cards[b.id]||{}).nextDue||0));
+  const pool=sorted.length>=n?sorted.slice(0,n):[...sorted,...src.filter(v=>!sorted.find(x=>x.id===v.id)).slice(0,n-sorted.length)];
+  return pool.slice(0,n).sort(()=>Math.random()-0.5);
+}
+
+function makeReminderLink(){
+  const d=new Date();d.setDate(d.getDate()+1);d.setHours(9,0,0,0);
+  return`x-apple-reminderkit://REMCDReminder?title=${encodeURIComponent("F1 English — Daily Quiz")}&dueDateISO=${encodeURIComponent(d.toISOString())}`;
+}
+
+// ── APP STATE ─────────────────────────────────────────────────────────────────
+let state={
+  screen:"home",
+  cards:loadCards(),
+  stats:loadStats(),
+  session:[],
+  qIdx:0,
+  chosen:null,
+  startMs:0,
+  results:[],
+  activeCat:"all",
+};
+
+function setState(patch){
+  state={...state,...patch};
+  render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  const app=document.getElementById("app");
+  if(state.screen==="home")app.innerHTML=homeHTML();
+  else if(state.screen==="quiz")app.innerHTML=quizHTML();
+  else if(state.screen==="result")app.innerHTML=resultHTML();
+  else if(state.screen==="stats")app.innerHTML=statsHTML();
+  bindEvents();
+}
+
+function homeHTML(){
+  const{cards,stats}=state;
+  const mastered=Object.values(cards).filter(c=>c.reps>=3&&c.interval>=7).length;
+  const due=VOCAB.filter(v=>{const c=cards[v.id]||{};return!c.nextDue||c.nextDue<=Date.now();}).length;
+  const catGrid=Object.entries(CATS).map(([cat,{label,color}])=>{
+    const tot=VOCAB.filter(v=>v.cat===cat).length;
+    const done=VOCAB.filter(v=>v.cat===cat&&(cards[v.id]||{}).reps>=3).length;
+    const dueC=VOCAB.filter(v=>v.cat===cat&&(!(cards[v.id]||{}).nextDue||(cards[v.id]||{}).nextDue<=Date.now())).length;
+    return`<button class="cat-btn" onclick="startCat('${cat}')" style="border:1.5px solid ${color}22;">
+      <div style="color:${color};font-size:12px;font-weight:700;">${label}</div>
+      <div class="muted" style="font-size:11px;margin-top:3px;">${done}/${tot} mastered · ${dueC} due</div>
+    </button>`;
+  }).join("");
+  return`
+    <div style="display:flex;align-items:center;margin-bottom:18px;gap:8px;">
+      <span style="color:#e8002d;font-size:28px;font-weight:900;">F1</span>
+      <span style="font-size:18px;font-weight:700;">English Mastery</span>
+    </div>
+    <div class="card">
+      <div class="muted" style="font-size:11px;margin-bottom:10px;letter-spacing:1px;">VOCABULARY BANK</div>
+      <div class="stats-row">
+        <div style="text-align:center;"><div class="stat-val">${VOCAB.length}</div><div class="stat-lbl">Total</div></div>
+        <div style="text-align:center;"><div class="stat-val green">${mastered}</div><div class="stat-lbl">Mastered</div></div>
+        <div style="text-align:center;"><div class="stat-val gold">${due}</div><div class="stat-lbl">Due today</div></div>
+        <div style="text-align:center;"><div class="stat-val orange">${stats.streak||0}</div><div class="stat-lbl">🔥 Streak</div></div>
+      </div>
+    </div>
+    <button class="btn" onclick="startCat('all')" style="margin-bottom:10px;">
+      ${due>0?`▶  Start Session (${Math.min(due,10)} due)`:"▶  Practice Session"}
+    </button>
+    <div class="muted" style="font-size:11px;margin:10px 0 6px;letter-spacing:1px;">TRAIN BY CATEGORY</div>
+    <div class="grid2">${catGrid}</div>
+    <button class="btn btn-ghost" onclick="goStats()" style="margin-top:4px;">View Progress →</button>
+  `;
+}
+
+function quizHTML(){
+  const{session,qIdx,chosen}=state;
+  const q=session[qIdx];
+  const cc=CATS[q.cat];
+  const pct=Math.round(100*qIdx/session.length);
+  const opts=q.opts.map((opt,i)=>{
+    let cls="opt-btn";
+    if(chosen!==null){
+      if(i===q.ans)cls+=" opt-correct";
+      else if(i===chosen&&chosen!==q.ans)cls+=" opt-wrong";
+      else cls+=" opt-muted";
+    }
+    return`<button class="${cls}" onclick="handleAnswer(${i})"><span style="font-weight:700;margin-right:8px;">${String.fromCharCode(65+i)}.</span>${esc(opt)}</button>`;
+  }).join("");
+  const expHtml=chosen!==null?`
+    <div class="exp-card" style="background:${chosen===q.ans?"#0d2b1a":"#2b0d0d"};border:1px solid ${chosen===q.ans?"#22c55e":"#e8002d"};">
+      <div style="color:${chosen===q.ans?"#22c55e":"#e8002d"};font-weight:700;margin-bottom:4px;font-size:13px;">
+        ${chosen===q.ans?"✓ Correct":"✗ Incorrect — correct answer: "+String.fromCharCode(65+q.ans)}
+      </div>
+      <div style="font-size:13px;line-height:1.55;">${esc(q.exp)}</div>
+      <button class="btn" onclick="nextQ()" style="margin-top:12px;padding:10px 16px;font-size:14px;">
+        ${qIdx+1>=session.length?"See Results →":"Next →"}
+      </button>
+    </div>`:"";
+  return`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="color:${cc.color};font-size:11px;font-weight:700;text-transform:uppercase;">${cc.label}</span>
+      <span class="muted" style="font-size:12px;">${qIdx+1} / ${session.length}</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="background:${cc.color};width:${pct}%;"></div></div>
+    <div class="card"><div style="font-size:15px;line-height:1.6;font-weight:500;">${esc(q.q)}</div></div>
+    ${opts}
+    ${expHtml}
+  `;
+}
+
+function resultHTML(){
+  const{results,session,stats}=state;
+  const cc=results.filter(r=>r.correct).length;
+  const pct=Math.round(100*cc/session.length);
+  const emoji=pct>=90?"🏆":pct>=70?"✅":pct>=50?"📈":"🔁";
+  const rows=results.map(r=>`
+    <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+      <span style="color:${r.correct?"#22c55e":"#e8002d"};font-size:14px;flex-shrink:0;">${r.correct?"✓":"✗"}</span>
+      <span style="color:${r.correct?"#f0f0f0":"#666"};font-size:12px;line-height:1.4;">${esc(r.q.term)}</span>
+      <span style="color:${CATS[r.q.cat].color};font-size:10px;margin-left:auto;flex-shrink:0;">${CATS[r.q.cat].label.split(" ")[0]}</span>
+    </div>`).join("");
+  return`
+    <div class="hdr">${emoji} Session Complete</div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:52px;font-weight:900;color:${pct>=70?"#22c55e":"#f97316"};">${pct}%</div>
+      <div class="muted" style="font-size:14px;">${cc} / ${session.length} correct</div>
+      ${stats?`<div class="gold" style="font-size:13px;margin-top:6px;">🔥 ${stats.streak}-day streak</div>`:""}
+    </div>
+    <div class="card" style="margin-top:10px;">
+      <div class="muted" style="font-size:11px;margin-bottom:8px;letter-spacing:1px;">BREAKDOWN</div>
+      ${rows}
+    </div>
+    <a href="${makeReminderLink()}" class="btn btn-dim" style="margin-bottom:8px;">⏰ Set iOS Reminder for Tomorrow</a>
+    <button class="btn" onclick="startCat('all')" style="margin-bottom:8px;">Another Session</button>
+    <button class="btn btn-ghost" onclick="goHome()">← Home</button>
+  `;
+}
+
+function statsHTML(){
+  const{cards,stats}=state;
+  const mastered=Object.values(cards).filter(c=>c.reps>=3&&c.interval>=7).length;
+  const learning=Object.values(cards).filter(c=>c.reps>0&&!(c.reps>=3&&c.interval>=7)).length;
+  const unseen=VOCAB.length-Object.keys(cards).filter(id=>cards[id]?.reps>0).length;
+  const hist=(stats?.history||[]).slice(-10);
+  const catRows=Object.entries(CATS).map(([cat,{label,color}])=>{
+    const voc=VOCAB.filter(v=>v.cat===cat);
+    const done=voc.filter(v=>(cards[v.id]||{}).reps>=3).length;
+    const pct=Math.round(100*done/voc.length);
+    return`<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="color:${color};font-size:12px;font-weight:700;">${label}</span>
+        <span class="muted" style="font-size:11px;">${done}/${voc.length}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="background:${color};width:${pct}%;"></div></div>
+    </div>`;
+  }).join("");
+  const sessRows=hist.length===0?`<div class="muted" style="font-size:13px;">No sessions yet.</div>`:
+    hist.map(s=>{
+      const p=Math.round(100*s.correct/s.total);
+      const d=new Date(s.date);
+      return`<div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+        <span class="muted">${d.toLocaleDateString("en-GB",{month:"short",day:"numeric"})}</span>
+        <span>${s.correct}/${s.total}</span>
+        <span style="color:${p>=70?"#22c55e":"#f97316"};font-weight:700;">${p}%</span>
+      </div>`;
+    }).join("");
+  return`
+    <div class="hdr">📊 Progress</div>
+    <div class="card">
+      <div class="muted" style="font-size:11px;margin-bottom:10px;letter-spacing:1px;">OVERALL — ${VOCAB.length} TERMS</div>
+      ${barStat("Mastered",mastered,VOCAB.length,"#22c55e")}
+      ${barStat("Learning",learning,VOCAB.length,"#f97316")}
+      ${barStat("Not yet seen",unseen,VOCAB.length,"#444")}
+    </div>
+    <div class="card"><div class="muted" style="font-size:11px;margin-bottom:10px;letter-spacing:1px;">BY CATEGORY</div>${catRows}</div>
+    <div class="card"><div class="muted" style="font-size:11px;margin-bottom:10px;letter-spacing:1px;">LAST ${hist.length} SESSIONS</div>${sessRows}</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" onclick="startCat('all')" style="flex:1;">▶ Start Session</button>
+      <button class="btn btn-ghost" onclick="goHome()" style="flex:1;">← Home</button>
+    </div>
+  `;
+}
+
+function barStat(label,val,max,color){
+  const pct=Math.round(100*val/max);
+  return`<div style="margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:12px;">${label}</span>
+      <span style="color:${color};font-size:12px;font-weight:700;">${val}</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="background:${color};width:${pct}%;"></div></div>
+  </div>`;
+}
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function bindEvents(){}
+
+window.startCat=function(cat){
+  const sess=buildSession(state.cards,cat);
+  setState({screen:"quiz",session:sess,qIdx:0,chosen:null,results:[],startMs:Date.now(),activeCat:cat});
+};
+window.handleAnswer=function(optIdx){
+  if(state.chosen!==null)return;
+  const q=state.session[state.qIdx];
+  const correct=optIdx===q.ans;
+  const ms=Date.now()-state.startMs;
+  const qual=quality(correct,ms);
+  const updatedCards={...state.cards,[q.id]:sm2(state.cards[q.id],qual)};
+  saveCards(updatedCards);
+  const updatedResults=[...state.results,{q,chosen:optIdx,correct}];
+  setState({chosen:optIdx,cards:updatedCards,results:updatedResults});
+};
+window.nextQ=function(){
+  const{qIdx,session,results,stats}=state;
+  if(qIdx+1>=session.length){
+    const cc=results.filter(r=>r.correct).length;
+    const today=new Date().toDateString();
+    const ns={...stats,sessions:(stats.sessions||0)+1,correct:(stats.correct||0)+cc,total:(stats.total||0)+session.length,
+      history:[...(stats.history||[]),{date:Date.now(),correct:cc,total:session.length}].slice(-60)};
+    if(ns.lastDate!==today){
+      const yd=new Date();yd.setDate(yd.getDate()-1);
+      ns.streak=ns.lastDate===yd.toDateString()?(ns.streak||0)+1:1;
+      ns.lastDate=today;
+    }
+    saveStats(ns);
+    setState({screen:"result",stats:ns});
+  }else{
+    setState({qIdx:qIdx+1,chosen:null,startMs:Date.now()});
+  }
+};
+window.goHome=function(){setState({screen:"home"});};
+window.goStats=function(){setState({screen:"stats"});};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
